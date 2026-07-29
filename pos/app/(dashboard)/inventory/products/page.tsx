@@ -80,3 +80,28 @@ const handleDelete = async (product: Product) => {
     }
 };
 
+  return (
+    <DashboardShell title="Products">
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search products..."
+              className="input-field pl-9"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(undefined);
+              setModalOpen(true);
+            }}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Product
+          </button>
+        </div>
