@@ -1,5 +1,5 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# Docs for the Azure Web Apps Deploy action:
+# https://github.com/Azure/webapps-deploy
 
 name: Build and deploy Node.js app to Azure Web App - sachindu
 
@@ -12,44 +12,75 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
+
+    defaults:
+      run:
+        working-directory: ./pos
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
+          cache: npm
+          cache-dependency-path: pos/package-lock.json
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Upload artifact for deployment job
+      - name: Build application
+        run: npm run build
+
+      - name: Run tests
+        run: npm run test --if-present
+
+      - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: |
+            ./pos
+            !./pos/.next/cache
+          include-hidden-files: true
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
-      - name: Download artifact from build job
+      - name: Download deployment artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
-      - name: 'Deploy to Azure Web App'
+          path: ./deploy-package
+
+      - name: Verify deployment files
+        run: |
+          echo "Deployment package contents:"
+          ls -la ./deploy-package
+
+          if [ ! -f "./deploy-package/package.json" ]; then
+            echo "Error: package.json was not found in deployment package"
+            exit 1
+          fi
+
+          if [ ! -d "./deploy-package/.next" ]; then
+            echo "Error: .next build folder was not found"
+            exit 1
+          fi
+
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'sachindu'
           slot-name: 'Production'
-          package: .
+          package: ./deploy-package
+        
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CD1F985F5C5C42E18DD56BD8C195C13B }}
