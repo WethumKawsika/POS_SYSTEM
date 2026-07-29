@@ -43,3 +43,40 @@ const filtered = useMemo(() => {
             p.barcode?.includes(q)
     );
 }, [products, search]);
+
+const handleSubmit = async (values: ProductFormValues, imageFile?: File) => {
+    setSaving(true);
+    try {
+        if (editing) {
+            // Update existing product
+            await productAPI.updateProduct(editing.id, values);
+            if (imageFile) {
+                await productAPI.uploadProductImage(editing.id, imageFile);
+            }
+            toast.success("Product updated");
+        } else {
+            // Create new product
+            const result = await productAPI.createProduct(values, imageFile);
+            toast.success("Product added");
+        }
+        setModalOpen(false);
+        setEditing(undefined);
+        await load();
+    } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Save failed");
+    } finally {
+        setSaving(false);
+    }
+};
+
+const handleDelete = async (product: Product) => {
+    if (!confirm(`Delete "${product.name}"?`)) return;
+    try {
+        await productAPI.deleteProduct(product.id);
+        toast.success("Deleted");
+        await load();
+    } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Delete failed");
+    }
+};
+
