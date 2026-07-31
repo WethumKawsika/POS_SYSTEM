@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth as adminAuth, db as adminDb } from "@/lib/firebase-admin";
-import { calcProfitPerItem } from "@/lib/utils";
+import { calcProfitPerItem } from "@/lib/hooks/utils";
 import type { ProductInput } from "@/lib/firestore/products";
 
 /**
