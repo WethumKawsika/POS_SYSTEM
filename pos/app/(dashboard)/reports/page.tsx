@@ -8,7 +8,7 @@ import {
     BarChart2,
 } from "lucide-react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { formatCurrency, cn } from "@/lib/hooks/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReportsAPI, useSalesAPI, useProductAPI, useSettingsAPI } from "@/lib/hooks/hooks";
 import {

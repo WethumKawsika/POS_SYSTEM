@@ -15,7 +15,7 @@ import { db } from "@/lib/firebase";
 import { updateProductStock } from "@/lib/firestore/products";
 import { addStockMovement } from "@/lib/firestore/stock";
 import { getShopSettings, updateShopSettings } from "@/lib/firestore/settings";
-import { generateInvoiceNumber } from "@/lib/hooks/utils";
+import { generateInvoiceNumber } from "@/lib/utils";
 import type { Sale, SaleItem, CartItem, BillDiscount } from "@/types";
 
 const SALES_COL = "sales";
