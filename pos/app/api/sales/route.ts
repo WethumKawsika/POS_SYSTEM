@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth as adminAuth, db as adminDb } from "@/lib/firebase-admin";
-import { generateInvoiceNumber } from "@/lib/utils";
+import { generateInvoiceNumber } from "@/lib/hooks/utils";
 import type { CheckoutPayload } from "@/lib/firestore/sales";
 
 const SALES_COL = "sales";

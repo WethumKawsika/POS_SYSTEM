@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, RotateCcw, ArrowRight, FileMinus, FileText } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { useSalesAPI } from "@/lib/hooks";
-import { formatCurrency, cn } from "@/lib/utils";
+import { useSalesAPI } from "@/lib/hooks/hooks";
+import { formatCurrency, cn } from "@/lib/hooks/utils";
 import type { Sale } from "@/types";
 import toast from "react-hot-toast";
 

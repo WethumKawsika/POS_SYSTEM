@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { calcProfitPerItem } from "@/lib/utils";
+import { calcProfitPerItem } from "@/lib/hooks/utils";
 import { db as adminDb, auth as adminAuth } from "@/lib/firebase-admin";
 
 const COL = "products";
