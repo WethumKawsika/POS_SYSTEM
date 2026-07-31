@@ -97,3 +97,44 @@ export function downloadReceiptPdf(data: ReceiptData): void {
     doc.text(text, 40, y, { align: "center" });
     y += 4;
   };
+
+  
+  line(settings.shopName, true);
+  line(settings.address);
+  line(settings.contactNumber);
+  y += 2;
+  line(`Invoice: ${sale.invoiceNumber}`);
+  const date =
+    sale.createdAt instanceof Date
+      ? sale.createdAt
+      : sale.createdAt.toDate?.() ?? new Date();
+  line(date.toLocaleString());
+  y += 2;
+
+  doc.setFontSize(7);
+  sale.items.forEach((item) => {
+    doc.text(item.productName.slice(0, 20), 4, y);
+    doc.text(`${item.quantity}x`, 50, y);
+    doc.text(formatCurrency(item.lineTotal), 72, y, { align: "right" });
+    y += 4;
+  });
+
+  y += 2;
+  doc.text(`Subtotal: ${formatCurrency(sale.subtotal)}`, 4, y);
+  y += 4;
+  if (sale.discountAmount > 0) {
+    doc.text(`Discount: -${formatCurrency(sale.discountAmount)}`, 4, y);
+    y += 4;
+  }
+  doc.setFont("helvetica", "bold");
+  doc.text(`TOTAL: ${formatCurrency(sale.grandTotal)}`, 4, y);
+  y += 4;
+  doc.setFont("helvetica", "normal");
+  doc.text(`Received: ${formatCurrency(sale.amountReceived)}`, 4, y);
+  y += 4;
+  doc.text(`Balance: ${formatCurrency(sale.balance)}`, 4, y);
+  y += 6;
+  doc.text(settings.receiptFooter, 40, y, { align: "center" });
+
+  doc.save(`${sale.invoiceNumber}.pdf`);
+}
