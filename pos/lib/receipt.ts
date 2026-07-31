@@ -98,7 +98,6 @@ export function downloadReceiptPdf(data: ReceiptData): void {
     y += 4;
   };
 
-  
   line(settings.shopName, true);
   line(settings.address);
   line(settings.contactNumber);
