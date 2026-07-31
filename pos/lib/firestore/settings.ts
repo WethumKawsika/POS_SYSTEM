@@ -13,7 +13,7 @@ const SETTINGS_ID = "shop";
 const defaultSettings: Omit<ShopSettings, "id"> = {
   shopName: "Smart Retail Shop",
   address: "123 Main Street, Colombo",
-  contactNumber: "+94 11 234 5678",
+  contactNumber: "+94 11 234 6578",
   receiptFooter: "Thank you for shopping with us!",
   lowStockThreshold: 10,
   invoiceCounter: 1,
