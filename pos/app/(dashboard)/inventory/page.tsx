@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, PackageX, History } from "lucide-react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { useProductAPI, useStockAPI, useSettingsAPI } from "@/lib/hooks";
+import { useProductAPI, useStockAPI, useSettingsAPI } from "@/lib/hooks/hooks";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/hooks/utils";
 import type { Product, StockMovement } from "@/types";
 import toast from "react-hot-toast";
 
