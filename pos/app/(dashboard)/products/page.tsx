@@ -6,7 +6,7 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Modal } from "@/components/ui/Modal";
 import { ProductForm, ProductFormValues } from "@/components/products/ProductForm";
 import { useProductAPI } from "@/lib/hooks/hooks";
-import { formatCurrency } from "@/lib/hooks/utils";
+import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/types";
 import toast from "react-hot-toast";
 
