@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const decoded = await adminAuth.verifyIdToken(token);
 
     const snap = await adminDb.collection(SALES_COL).where("createdBy", "==", decoded.uid).get();
-    const sales = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    const sales = snap.docs.map((doc: any) => ({ id: doc.id, ...(doc.data() as any) }));
     sales.sort((a: any, b: any) => (b.createdAt?.getTime?.() || 0) - (a.createdAt?.getTime?.() || 0));
     return NextResponse.json({ success: true, data: sales });
   } catch (error) {
