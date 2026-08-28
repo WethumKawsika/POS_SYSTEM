@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ShopSettings } from "@/types";
+import { getLocalSettings, isLocalUser, saveLocalSettings } from "@/lib/localStore";
 
 /**
  * Hook for settings API operations
@@ -45,6 +46,7 @@ export function useSettingsAPI() {
     };
 
     const getSettings = async (): Promise<ShopSettings> => {
+      if (isLocalUser(user?.uid)) return getLocalSettings();
       const response = await fetch("/api/settings");
 
       if (!response.ok) {
@@ -58,6 +60,10 @@ export function useSettingsAPI() {
     const updateSettings = async (
       data: Partial<Omit<ShopSettings, "id">>
     ): Promise<void> => {
+      if (isLocalUser(user?.uid)) {
+        saveLocalSettings({ ...getLocalSettings(), ...data });
+        return;
+      }
       const token = await getToken();
 
       await requestWithTokenRetry<void>("/api/settings", {

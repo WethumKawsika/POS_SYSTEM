@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getLocalSales, isLocalUser } from "@/lib/localStore";
 
 export type ReportData = {
   summary: {
@@ -58,6 +59,10 @@ export function useReportsAPI() {
 
       const getReport = async (opts: { range?: string; start?: string; end?: string }): Promise<ReportData> => {
         if (!user) throw new Error("User not authenticated");
+        if (isLocalUser(user.uid)) {
+          const sales = getLocalSales().filter((sale) => sale.type !== "return");
+          return { summary: { revenue: sales.reduce((sum, sale) => sum + sale.grandTotal, 0), cost: sales.reduce((sum, sale) => sum + sale.totalCost, 0), profit: sales.reduce((sum, sale) => sum + sale.totalProfit, 0), transactions: sales.length }, series: {}, days: [] };
+        }
 
         const params = new URLSearchParams();
         if (opts.range) params.set("range", opts.range);

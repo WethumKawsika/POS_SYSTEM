@@ -5,8 +5,8 @@ export type { ProductFormData } from "./useProductAPI";
 export { useSalesAPI } from "./useSalesAPI";
 export type { CheckoutData } from "./useSalesAPI";
 
-export { useStockAPI } from "./useStockAPI";
-export type { StockMovementData } from "./useStockAPI";
+export { useStockAPI } from "./useStockApi";
+export type { StockMovementData } from "./useStockApi";
 
 export { useSettingsAPI } from "./useSettingsAPI";
 export { useReportsAPI } from "./useReportsAPI";

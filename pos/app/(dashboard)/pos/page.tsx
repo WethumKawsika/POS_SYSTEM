@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { ReceiptModal } from "@/components/pos/ReceiptModal";
-import { useProductAPI, useSettingsAPI, useSalesAPI } from "@/lib/hooks/hooks";
+import { useProductAPI, useSettingsAPI, useSalesAPI } from "@/lib/hooks";
 import { useCartStore } from "@/stores/cartStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency, cn } from "@/lib/utils";

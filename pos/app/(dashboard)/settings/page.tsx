@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { useSettingsAPI } from "@/lib/hooks/hooks";
+import { useSettingsAPI } from "@/lib/hooks";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 import toast from "react-hot-toast";

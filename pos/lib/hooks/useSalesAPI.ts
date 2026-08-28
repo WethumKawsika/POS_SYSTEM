@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Sale, CartItem, BillDiscount, PriceType } from "@/types";
+import { getLocalSales, isLocalUser, saveLocalSales } from "@/lib/localStore";
 
 export interface CheckoutData {
   items: CartItem[];
@@ -58,6 +59,7 @@ export function useSalesAPI() {
     };
 
     const getSales = async (): Promise<Sale[]> => {
+      if (isLocalUser(user?.uid)) return getLocalSales();
       const token = await getToken();
       return requestWithTokenRetry<Sale[]>("/api/sales", {
         cache: "no-store",
@@ -66,6 +68,10 @@ export function useSalesAPI() {
     };
 
     const getSalesInRange = async (start: Date, end: Date): Promise<Sale[]> => {
+      if (isLocalUser(user?.uid)) return getLocalSales().filter((sale) => {
+        const created = sale.createdAt instanceof Date ? sale.createdAt : sale.createdAt.toDate();
+        return created >= start && created <= end;
+      });
       const startStr = start.toISOString().split("T")[0];
       const endStr = end.toISOString().split("T")[0];
 
@@ -77,6 +83,15 @@ export function useSalesAPI() {
     };
 
     const checkout = async (data: CheckoutData): Promise<{ saleId: string; invoiceNumber: string }> => {
+      if (isLocalUser(user?.uid)) {
+        const settings = JSON.parse(window.localStorage.getItem("pos-local-settings") || '{"invoiceCounter":1}');
+        const invoiceNumber = `LOCAL-${String(settings.invoiceCounter || 1).padStart(5, "0")}`;
+        const saleId = `local-sale-${Date.now()}`;
+        const sale: Sale = { id: saleId, invoiceNumber, items: data.items.map((item) => ({ productId: item.productId, productName: item.name, quantity: item.quantity, unitPrice: item.unitPrice, costPrice: item.costPrice, priceType: item.priceType, lineTotal: item.lineTotal, lineProfit: item.lineProfit })), subtotal: data.subtotal, discountType: data.discount.type, discountValue: data.discount.value, discountAmount: data.discountAmount, grandTotal: data.grandTotal, amountReceived: data.amountReceived, balance: data.balance, totalCost: data.totalCost, totalProfit: data.totalProfit, createdAt: new Date(), createdBy: user?.uid || "local" };
+        saveLocalSales([sale, ...getLocalSales()]);
+        window.localStorage.setItem("pos-local-settings", JSON.stringify({ ...settings, invoiceCounter: (settings.invoiceCounter || 1) + 1 }));
+        return { saleId, invoiceNumber };
+      }
       const token = await getToken();
 
       return requestWithTokenRetry<{ saleId: string; invoiceNumber: string }>("/api/sales", {
@@ -108,6 +123,14 @@ export function useSalesAPI() {
         }>;
       }
     ): Promise<{ saleId: string; invoiceNumber: string }> => {
+      if (isLocalUser(user?.uid)) {
+        const saleId = `local-return-${Date.now()}`;
+        const invoiceNumber = `LOCAL-RET-${Date.now().toString().slice(-5)}`;
+        const amount = payload.items.reduce((sum, item) => sum + item.lineTotal, 0);
+        const returned: Sale = { id: saleId, invoiceNumber, type: "return", originalSaleId: payload.originalSaleId, originalInvoiceNumber: payload.originalInvoiceNumber, customerName: payload.customerName || undefined, refundAmount: payload.refundAmount, customerOwes: payload.customerOwes, items: payload.items, subtotal: amount, discountType: "none", discountValue: 0, discountAmount: 0, grandTotal: amount, amountReceived: 0, balance: 0, totalCost: payload.items.reduce((sum, item) => sum + item.costPrice * item.quantity, 0), totalProfit: payload.items.reduce((sum, item) => sum + item.lineProfit, 0), createdAt: new Date(), createdBy: user?.uid || "local" };
+        saveLocalSales([returned, ...getLocalSales()]);
+        return { saleId, invoiceNumber };
+      }
       const token = await getToken();
 
       return requestWithTokenRetry<{ saleId: string; invoiceNumber: string }>("/api/returns", {

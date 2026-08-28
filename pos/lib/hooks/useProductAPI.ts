@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Product } from "@/types";
+import { getLocalProducts, isLocalUser, saveLocalProducts } from "@/lib/localStore";
 
 export interface ProductFormData {
   name: string;
@@ -68,6 +69,11 @@ export function useProductAPI() {
       data: ProductFormData,
       imageFile?: File
     ): Promise<{ id: string; imageUrl?: string }> => {
+      if (isLocalUser(user?.uid)) {
+        const id = `local-${Date.now()}`;
+        saveLocalProducts([...getLocalProducts(), { ...data, id, profitPerItem: data.sellingPrice - data.costPrice, createdAt: new Date() } as Product]);
+        return { id };
+      }
       const token = await getToken();
       const formData = new FormData();
 
@@ -91,6 +97,7 @@ export function useProductAPI() {
     };
 
     const getProducts = async (): Promise<Product[]> => {
+      if (isLocalUser(user?.uid)) return getLocalProducts();
       const token = await getToken();
       return requestWithTokenRetry<Product[]>("/api/products", {
         headers: { Authorization: `Bearer ${token}` },
@@ -98,6 +105,11 @@ export function useProductAPI() {
     };
 
     const getProduct = async (id: string): Promise<Product> => {
+      if (isLocalUser(user?.uid)) {
+        const product = getLocalProducts().find((item) => item.id === id);
+        if (!product) throw new Error("Product not found");
+        return product;
+      }
       const token = await getToken();
       return requestWithTokenRetry<Product>(`/api/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -108,6 +120,10 @@ export function useProductAPI() {
       id: string,
       data: Partial<ProductFormData>
     ): Promise<void> => {
+      if (isLocalUser(user?.uid)) {
+        saveLocalProducts(getLocalProducts().map((product) => product.id === id ? { ...product, ...data, profitPerItem: (data.sellingPrice ?? product.sellingPrice) - (data.costPrice ?? product.costPrice), updatedAt: new Date() } : product));
+        return;
+      }
       const token = await getToken();
 
       await requestWithTokenRetry<void>(`/api/products/${id}`, {
@@ -121,6 +137,10 @@ export function useProductAPI() {
     };
 
     const deleteProduct = async (id: string): Promise<void> => {
+      if (isLocalUser(user?.uid)) {
+        saveLocalProducts(getLocalProducts().filter((product) => product.id !== id));
+        return;
+      }
       const token = await getToken();
 
       await requestWithTokenRetry<void>(`/api/products/${id}`, {

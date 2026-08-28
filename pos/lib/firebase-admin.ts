@@ -7,7 +7,7 @@ const serviceAccountPath = join(
   "pos-system-2bd48-firebase-adminsdk-fbsvc-8994f855ec.json"
 );
 
-let credential: admin.credential.Credential;
+let credential: admin.credential.Credential | undefined;
 let projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
 if (existsSync(serviceAccountPath)) {
@@ -25,22 +25,11 @@ if (existsSync(serviceAccountPath)) {
 } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   credential = admin.credential.applicationDefault();
 } else {
-  throw new Error(
-    "Firebase admin credentials are missing. Provide posd-91fd3-firebase-adminsdk-fbsvc-736893042a.json, FIREBASE_SERVICE_ACCOUNT, or set GOOGLE_APPLICATION_CREDENTIALS."
-  );
-}
-
-if (!projectId) {
-  throw new Error(
-    "Firebase project ID is not configured. Set FIREBASE_PROJECT_ID, NEXT_PUBLIC_FIREBASE_PROJECT_ID, or include project_id in the service account."
-  );
+  console.warn("Firebase admin credentials are missing; API routes will require Firebase configuration.");
 }
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential,
-    projectId,
-  });
+  admin.initializeApp(credential ? { credential, projectId } : { projectId: projectId || "local-pos" });
 }
 
 export const auth = admin.auth();

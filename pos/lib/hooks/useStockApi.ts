@@ -1,10 +1,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import type { StockMovement } from "@/types";
+import { getLocalMovements, isLocalUser, saveLocalMovements } from "@/lib/localStore";
 
 export interface StockMovementData {
   productId: string;
   productName: string;
-  type: "in" | "out" | "adjustment";
+  type: "sale" | "restock" | "adjustment";
   quantityChange: number;
   previousStock: number;
   newStock: number;
@@ -24,6 +25,7 @@ export function useStockAPI() {
   };
 
   const getStockMovements = async (limit = 100): Promise<StockMovement[]> => {
+    if (isLocalUser(user?.uid)) return getLocalMovements().slice(0, limit);
     const response = await fetch(`/api/stock?limit=${limit}`);
 
     if (!response.ok) {
@@ -35,6 +37,10 @@ export function useStockAPI() {
   };
 
   const recordStockMovement = async (data: StockMovementData): Promise<void> => {
+    if (isLocalUser(user?.uid)) {
+      saveLocalMovements([{ ...data, id: `local-${Date.now()}`, createdAt: new Date(), createdBy: user?.uid || "local" }, ...getLocalMovements()]);
+      return;
+    }
     const token = await getToken();
 
     const response = await fetch("/api/stock", {

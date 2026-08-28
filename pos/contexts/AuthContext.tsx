@@ -21,8 +21,17 @@ import {
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
+interface LocalUser {
+  uid: string;
+  email: string;
+  displayName: string;
+  getIdToken: (forceRefresh?: boolean) => Promise<string>;
+}
+
+type AuthUser = User | LocalUser;
+
 interface AuthContextValue {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -48,10 +57,30 @@ async function ensureUserDoc(user: User) {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const stored = window.localStorage.getItem("pos-auth-user");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as Pick<LocalUser, "uid" | "email" | "displayName">;
+        setUser({
+          ...parsed,
+          getIdToken: async () => window.localStorage.getItem("pos-auth-token") || "local-demo-token",
+        });
+        setLoading(false);
+        return;
+      } catch {
+        window.localStorage.removeItem("pos-auth-user");
+      }
+    }
+
+    if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+      setLoading(false);
+      return;
+    }
+
     const unsub = onAuthStateChanged(
       auth,
       (u) => {
@@ -79,7 +108,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    if (!email.trim() || password.length < 6) {
+      throw new Error("Enter an email and a password with at least 6 characters.");
+    }
+    const localUser: LocalUser = {
+      uid: `local-${encodeURIComponent(email.trim().toLowerCase())}`,
+      email: email.trim().toLowerCase(),
+      displayName: email.trim().split("@")[0],
+      getIdToken: async () => window.localStorage.getItem("pos-auth-token") || "local-demo-token",
+    };
+    window.localStorage.setItem("pos-auth-user", JSON.stringify({ uid: localUser.uid, email: localUser.email, displayName: localUser.displayName }));
+    window.localStorage.setItem("pos-auth-token", "local-demo-token");
+    setUser(localUser);
+    setLoading(false);
   };
 
   const signInWithGoogle = async () => {
@@ -104,7 +145,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    window.localStorage.removeItem("pos-auth-user");
+    window.localStorage.removeItem("pos-auth-token");
+    setUser(null);
+    try {
+      await firebaseSignOut(auth);
+    } catch {
+      // Firebase may be unconfigured in local mode.
+    }
   };
 
   return (
